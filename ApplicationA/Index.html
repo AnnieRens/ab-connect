@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+</head>
+<body>
+<div class="page-wrapper">
+    <div class="connection-setting">
+        <form>
+            <div>
+                <h2>Connection settings</h2>
+                <label>Host:</label>
+                <input id="host" type="text" placeholder="127.0.0.1">
+                <label>Port:</label>
+                <input id="port" type="text" placeholder="8005">
+                <input type="submit" text="Apply">
+            </div>
+        </form>
+    </div>
+
+    <div class="messaging">
+        <h2>Send message</h2>
+        <label>Text:</label>
+        <input id="message-text" type="text">
+        <button id="send-message" onclick="sendMessage()">Send</button>
+    </div>
+    <hr/>
+    <div class="log">
+        <button onclick="getLogs()">Logs</button>
+        <div class="log-messages"></div>
+    </div>
+</div>
+
+<script>
+    $( "form" ).submit(function(event) {
+
+        var data = { host: $("#host").first().val(), port: $("#port").first().val() };
+           
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:12345/connection-settings",
+            data: JSON.stringify(data), 
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            error: function(error) {
+                alert(error.responseText);
+            },
+            success: function() {
+                alert('Success!');
+            }
+        });
+    });
+
+    function sendMessage() {
+        var text = $("#message-text").first().val();
+
+        $.ajax({
+            type: "POST",
+            url: "http://localhost:12345/message",
+            data: JSON.stringify(text), 
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            error: function (error) {
+                alert(error.responseText);
+            },
+            success: function() {
+                alert('Success!');
+            }
+        });
+    }
+
+    function getLogs() {
+        $.ajax({
+            type: "GET",
+            url: "http://localhost:12345/logs",
+            contentType: 'application/json; charset=utf-8',
+            dataType: 'json',
+            success: function(data) {
+                rebuildLogsTable(data);
+            },
+            error: function(error) {
+                alert(error.responseText);
+            }
+        });
+    }
+
+    function rebuildLogsTable(data) {
+        $(".log-messages").empty();
+
+        for (var i = 0; i < data.length; i++) {
+            console.log(data[i]);
+
+            $('<div>',
+                {
+                    append: $('<div>')
+                        .add('<span>', {text: data[i].DateTime + ' : ' + data[i].Text + ' Received: ' + data[i].IsReceived})
+                }).appendTo('.log-messages');
+        }
+    }
+
+</script>
+</body>
+</html>
